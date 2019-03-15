@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-
 /**
  * Test class for the UserResource REST resource.
  *
@@ -32,18 +31,71 @@ public class UserServiceTest {
     @Autowired
     private UserService userService;
 
+
     @Test
     public void createUser() {
         Assert.assertNull(userRepository.findByUsername("testUsername"));
 
         User testUser = new User();
-        testUser.setName("testName");
+        //testUser.setName("testName");
         testUser.setUsername("testUsername");
+        testUser.setPassword("testPassowrd");
 
         User createdUser = userService.createUser(testUser);
 
         Assert.assertNotNull(createdUser.getToken());
-        Assert.assertEquals(createdUser.getStatus(),UserStatus.ONLINE);
+        Assert.assertEquals(createdUser.getStatus(),UserStatus.OFFLINE);
         Assert.assertEquals(createdUser, userRepository.findByToken(createdUser.getToken()));
+
     }
+
+    @Test
+    public void notFound() {
+        Assert.assertNull(userRepository.findById(100));
+    }
+
+    @Test
+    public void saveNewName() {
+
+        Assert.assertNull(userRepository.findByUsername("testUsername"));
+
+        User testUser = new User();
+        testUser.setUsername("testUsername");
+        testUser.setPassword("testPassword");
+
+        User createdUser = userService.createUser(testUser);
+
+        Assert.assertNotNull(createdUser.getToken());
+        Assert.assertEquals(createdUser.getStatus(),UserStatus.OFFLINE);
+        Assert.assertEquals(createdUser, userRepository.findByToken(createdUser.getToken()));
+
+        var id = createdUser.getId();
+
+        User temp = createdUser;
+        temp.setUsername("newname");
+
+        userService.updateProfile(temp, id);
+
+        Assert.assertEquals(createdUser.getUsername(),"newname");
+    }
+
+    @Test
+    public void notFound2() {
+
+        Assert.assertNull(userRepository.findByUsername("Carlotta"));
+
+        User a = new User();
+        a.setUsername("Carlotta");
+        a.setPassword("testPassword");
+
+        User createdUser = userService.createUser(a);
+
+        Assert.assertNotNull(createdUser.getToken());
+        Assert.assertEquals(createdUser.getStatus(),UserStatus.OFFLINE);
+        Assert.assertEquals(createdUser, userRepository.findByToken(createdUser.getToken()));
+
+        Assert.assertNull(userRepository.findByUsername("Maya"));
+
+    }
+
 }
